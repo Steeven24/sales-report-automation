@@ -1,0 +1,10 @@
+date,product,quantity,unit_price,total,region,source_file,year,month,month_name,quarter
+2024-01-05,Widget A,10.0,25,250.0,North,sales_january.xlsx,2024,1,January,1
+2024-01-12,Widget B,5.0,40,200.0,South,sales_january.xlsx,2024,1,January,1
+2024-01-20,Widget A,8.0,25,200.0,East,sales_january.xlsx,2024,1,January,1
+2024-02-03,Widget C,3.0,60,180.0,West,sales_february.xlsx,2024,2,February,1
+2024-02-14,Widget A,12.0,25,300.0,North,sales_february.xlsx,2024,2,February,1
+2024-02-28,Widget B,7.0,40,280.0,South,sales_february.xlsx,2024,2,February,1
+2024-03-01,Widget B,9.0,40,360.0,East,sales_march.xlsx,2024,3,March,1
+2024-03-15,Widget C,4.0,60,240.0,West,sales_march.xlsx,2024,3,March,1
+2024-03-22,Widget A,6.0,25,150.0,North,sales_march.xlsx,2024,3,March,1
