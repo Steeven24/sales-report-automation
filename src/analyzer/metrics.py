@@ -17,6 +17,11 @@ def revenue_by_product(df: pd.DataFrame) -> pd.DataFrame:
     )
 
 
+def top_products(df: pd.DataFrame, n: int = 3) -> pd.DataFrame:
+    """Return the top N products by total revenue."""
+    return revenue_by_product(df).head(n)
+
+
 def revenue_by_period(df: pd.DataFrame) -> pd.DataFrame:
     """Return total revenue grouped by year and month, sorted chronologically."""
     return (
