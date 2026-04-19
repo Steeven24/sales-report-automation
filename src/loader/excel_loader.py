@@ -1,5 +1,6 @@
-import os
 from pathlib import Path
+
+import pandas as pd
 
 
 def find_excel_files(directory: str) -> list[Path]:
@@ -18,3 +19,20 @@ def find_excel_files(directory: str) -> list[Path]:
         for file in sorted(folder.iterdir())
         if file.suffix.lower() in excel_extensions
     ]
+
+
+def load_excel_file(file_path: str | Path, sheet_name: int | str = 0) -> pd.DataFrame:
+    """Load a single Excel file into a DataFrame.
+
+    Adds a 'source_file' column with the file name so the origin
+    of each row is traceable after consolidation.
+    """
+    path = Path(file_path)
+
+    if not path.exists():
+        raise FileNotFoundError(f"File not found: {file_path}")
+
+    df = pd.read_excel(path, sheet_name=sheet_name, engine="openpyxl")
+    df["source_file"] = path.name
+
+    return df
