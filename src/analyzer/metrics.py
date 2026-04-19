@@ -17,6 +17,17 @@ def revenue_by_product(df: pd.DataFrame) -> pd.DataFrame:
     )
 
 
+def revenue_by_period(df: pd.DataFrame) -> pd.DataFrame:
+    """Return total revenue grouped by year and month, sorted chronologically."""
+    return (
+        df.groupby(["year", "month", "month_name"])
+        .agg(revenue=("total", "sum"), orders=("total", "count"))
+        .round(2)
+        .sort_values(["year", "month"])
+        .reset_index()
+    )
+
+
 def revenue_by_region(df: pd.DataFrame) -> pd.DataFrame:
     """Return total revenue and number of orders grouped by region, sorted descending by revenue."""
     return (
