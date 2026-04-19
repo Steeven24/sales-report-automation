@@ -57,3 +57,27 @@ def export_to_csv(df: pd.DataFrame, output_path: str | Path) -> Path:
     print(f"  [export_to_csv] Saved {len(df)} row(s) to {path}")
 
     return path
+
+
+OUTPUT_EXCEL = Path("data/output/consolidated_sales.xlsx")
+OUTPUT_CSV = Path("data/output/consolidated_sales.csv")
+
+
+def merge(df: pd.DataFrame) -> pd.DataFrame:
+    """Run the full merging pipeline on a cleaned sales DataFrame.
+
+    Steps applied in order:
+    1. Sort rows chronologically by date
+    2. Add period columns: year, month, month_name, quarter
+    3. Export to a single Excel file
+    4. Export to a single CSV file
+    """
+    print("Starting data merging pipeline...")
+
+    df = sort_by_date(df)
+    df = add_period_columns(df)
+    export_to_excel(df, OUTPUT_EXCEL)
+    export_to_csv(df, OUTPUT_CSV)
+
+    print(f"Merging complete. Consolidated file has {len(df)} row(s).\n")
+    return df
