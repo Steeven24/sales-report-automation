@@ -36,3 +36,18 @@ def load_excel_file(file_path: str | Path, sheet_name: int | str = 0) -> pd.Data
     df["source_file"] = path.name
 
     return df
+
+
+def load_all_excel_files(directory: str, sheet_name: int | str = 0) -> pd.DataFrame:
+    """Load all Excel files in a directory and consolidate them into one DataFrame.
+
+    Raises ValueError if no Excel files are found in the directory.
+    """
+    files = find_excel_files(directory)
+
+    if not files:
+        raise ValueError(f"No Excel files found in: {directory}")
+
+    frames = [load_excel_file(file, sheet_name=sheet_name) for file in files]
+
+    return pd.concat(frames, ignore_index=True)
