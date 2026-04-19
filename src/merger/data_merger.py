@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import pandas as pd
 
 
@@ -25,3 +27,18 @@ def add_period_columns(df: pd.DataFrame, date_column: str = "date") -> pd.DataFr
     df["quarter"] = df[date_column].dt.quarter
 
     return df
+
+
+def export_to_excel(df: pd.DataFrame, output_path: str | Path, sheet_name: str = "Sales") -> Path:
+    """Export the DataFrame to a single Excel file.
+
+    Creates any missing parent directories automatically.
+    Returns the resolved output path.
+    """
+    path = Path(output_path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+
+    df.to_excel(path, index=False, sheet_name=sheet_name, engine="openpyxl")
+    print(f"  [export_to_excel] Saved {len(df)} row(s) to {path}")
+
+    return path
