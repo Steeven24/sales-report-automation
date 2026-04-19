@@ -42,3 +42,18 @@ def export_to_excel(df: pd.DataFrame, output_path: str | Path, sheet_name: str =
     print(f"  [export_to_excel] Saved {len(df)} row(s) to {path}")
 
     return path
+
+
+def export_to_csv(df: pd.DataFrame, output_path: str | Path) -> Path:
+    """Export the DataFrame to a single CSV file.
+
+    Creates any missing parent directories automatically.
+    Returns the resolved output path.
+    """
+    path = Path(output_path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+
+    df.to_csv(path, index=False, encoding="utf-8")
+    print(f"  [export_to_csv] Saved {len(df)} row(s) to {path}")
+
+    return path
