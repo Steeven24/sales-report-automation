@@ -15,3 +15,14 @@ def revenue_by_product(df: pd.DataFrame) -> pd.DataFrame:
         .sort_values("revenue", ascending=False)
         .reset_index()
     )
+
+
+def revenue_by_region(df: pd.DataFrame) -> pd.DataFrame:
+    """Return total revenue and number of orders grouped by region, sorted descending by revenue."""
+    return (
+        df.groupby("region")
+        .agg(revenue=("total", "sum"), orders=("total", "count"))
+        .round(2)
+        .sort_values("revenue", ascending=False)
+        .reset_index()
+    )
