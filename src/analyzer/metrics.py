@@ -17,6 +17,23 @@ def revenue_by_product(df: pd.DataFrame) -> pd.DataFrame:
     )
 
 
+def monthly_summary(df: pd.DataFrame) -> pd.DataFrame:
+    """Return a per-month summary with revenue, orders, units sold, and average order value."""
+    summary = (
+        df.groupby(["year", "month", "month_name"])
+        .agg(
+            revenue=("total", "sum"),
+            orders=("total", "count"),
+            units_sold=("quantity", "sum"),
+            avg_order_value=("total", "mean"),
+        )
+        .round(2)
+        .sort_values(["year", "month"])
+        .reset_index()
+    )
+    return summary
+
+
 def top_products(df: pd.DataFrame, n: int = 3) -> pd.DataFrame:
     """Return the top N products by total revenue."""
     return revenue_by_product(df).head(n)
