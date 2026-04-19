@@ -23,6 +23,23 @@ def normalize_text_columns(df: pd.DataFrame, columns: list[str]) -> pd.DataFrame
     return df
 
 
+def cast_numeric_columns(df: pd.DataFrame, columns: list[str]) -> pd.DataFrame:
+    """Coerce the given columns to float, dropping rows where conversion fails."""
+    for col in columns:
+        if col not in df.columns:
+            raise KeyError(f"Column '{col}' not found in DataFrame.")
+
+        before = len(df)
+        df[col] = pd.to_numeric(df[col], errors="coerce")
+
+        invalid = df[col].isna().sum()
+        if invalid:
+            df = df.dropna(subset=[col])
+            print(f"  [cast_numeric_columns] Removed {before - len(df)} row(s) with non-numeric '{col}'.")
+
+    return df.reset_index(drop=True)
+
+
 def parse_dates(df: pd.DataFrame, date_column: str) -> pd.DataFrame:
     """Convert a date column from string to datetime, dropping unparseable rows."""
     if date_column not in df.columns:
