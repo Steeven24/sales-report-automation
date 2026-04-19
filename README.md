@@ -34,14 +34,19 @@ pip install -r requirements.txt
 ```
 sales-report-automation/
 ├── data/
-│   └── raw/                      # Excel files to process (.xlsx / .xls)
+│   ├── raw/                      # Excel files to process (.xlsx / .xls)
+│   └── output/                   # Consolidated output files (generated)
+│       ├── consolidated_sales.xlsx
+│       └── consolidated_sales.csv
 ├── scripts/
 │   └── generate_sample_data.py   # Generates sample files for testing
 ├── src/
 │   ├── loader/
 │   │   └── excel_loader.py       # Excel loading and consolidation logic
-│   └── cleaner/
-│       └── data_cleaner.py       # Data cleaning pipeline
+│   ├── cleaner/
+│   │   └── data_cleaner.py       # Data cleaning pipeline
+│   └── merger/
+│       └── data_merger.py        # Sorting, enrichment, and export pipeline
 ├── tests/
 ├── main.py                       # Entry point
 └── requirements.txt
@@ -51,14 +56,18 @@ sales-report-automation/
 
 ## Usage
 
-### Load, clean, and preview all sales files
+### Run the full pipeline
 
 ```bash
 python main.py
 ```
 
-Place your `.xlsx` or `.xls` files inside `data/raw/` and run the command above.
-The pipeline loads all files, cleans the data, and prints a preview of the consolidated result.
+Place your `.xlsx` or `.xls` files inside `data/raw/` and run the command above. The pipeline:
+
+1. Loads all Excel files from `data/raw/`
+2. Cleans the data (removes nulls, duplicates, invalid values, normalizes text)
+3. Sorts rows chronologically and adds period columns (year, month, quarter)
+4. Exports the consolidated result to `data/output/` as `.xlsx` and `.csv`
 
 ### Generate sample data (for testing)
 
@@ -68,6 +77,19 @@ python scripts/generate_sample_data.py
 
 Creates three sample Excel files in `data/raw/` covering January, February, and March 2024.
 The files include intentionally dirty records (nulls, duplicates, bad dates, invalid values) to exercise the cleaning pipeline.
+
+---
+
+## Full pipeline
+
+```
+data/raw/*.xlsx
+    → load_all_excel_files      (loader)
+    → clean                     (cleaner)
+    → merge                     (merger)
+    → data/output/consolidated_sales.xlsx
+    → data/output/consolidated_sales.csv
+```
 
 ---
 
@@ -93,7 +115,7 @@ The `source_file` column is added automatically so each row stays traceable to i
 | `parse_dates(df, date_column)` | Converts a date column to `datetime`, dropping unparseable rows |
 | `cast_numeric_columns(df, columns)` | Coerces columns to `float`, dropping rows where conversion fails |
 | `remove_invalid_values(df, positive_columns)` | Drops rows with zero or negative values in numeric columns |
-| `clean(df)` | Runs the full pipeline in order — the main entry point for cleaning |
+| `clean(df)` | Runs the full cleaning pipeline in order |
 
 ### Cleaning pipeline order
 
@@ -110,6 +132,29 @@ raw DataFrame
 
 ---
 
+## Module reference — `src/merger/data_merger.py`
+
+| Function | Description |
+|---|---|
+| `sort_by_date(df, date_column)` | Sorts rows chronologically by the date column |
+| `add_period_columns(df, date_column)` | Adds `year`, `month`, `month_name`, and `quarter` columns derived from the date |
+| `export_to_excel(df, output_path, sheet_name)` | Exports the DataFrame to a single `.xlsx` file |
+| `export_to_csv(df, output_path)` | Exports the DataFrame to a single `.csv` file |
+| `merge(df)` | Runs the full merging pipeline in order |
+
+### Merging pipeline order
+
+```
+clean DataFrame
+    → sort_by_date
+    → add_period_columns
+    → export_to_excel   →  data/output/consolidated_sales.xlsx
+    → export_to_csv     →  data/output/consolidated_sales.csv
+    → merged DataFrame
+```
+
+---
+
 ## Expected input format
 
 Each Excel file should contain tabular sales data. The sample files include these columns:
@@ -122,3 +167,15 @@ Each Excel file should contain tabular sales data. The sample files include thes
 | `unit_price` | float | Price per unit |
 | `total` | float | Total sale amount |
 | `region` | string | Sales region |
+
+### Output columns (after merging)
+
+The consolidated output includes all input columns plus the period columns added during merging:
+
+| Column | Type | Description |
+|---|---|---|
+| `source_file` | string | Origin file name |
+| `year` | integer | Year extracted from date |
+| `month` | integer | Month number (1–12) |
+| `month_name` | string | Month name (e.g. January) |
+| `quarter` | integer | Quarter number (1–4) |
