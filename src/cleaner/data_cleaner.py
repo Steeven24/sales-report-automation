@@ -23,6 +23,22 @@ def normalize_text_columns(df: pd.DataFrame, columns: list[str]) -> pd.DataFrame
     return df
 
 
+def remove_invalid_values(df: pd.DataFrame, positive_columns: list[str]) -> pd.DataFrame:
+    """Drop rows where any of the given columns contain zero or negative values."""
+    before = len(df)
+
+    for col in positive_columns:
+        if col not in df.columns:
+            raise KeyError(f"Column '{col}' not found in DataFrame.")
+        df = df[df[col] > 0]
+
+    dropped = before - len(df)
+    if dropped:
+        print(f"  [remove_invalid_values] Removed {dropped} row(s) with non-positive values.")
+
+    return df.reset_index(drop=True)
+
+
 def cast_numeric_columns(df: pd.DataFrame, columns: list[str]) -> pd.DataFrame:
     """Coerce the given columns to float, dropping rows where conversion fails."""
     for col in columns:
