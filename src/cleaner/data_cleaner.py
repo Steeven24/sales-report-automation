@@ -90,3 +90,33 @@ def drop_duplicates(df: pd.DataFrame, subset: list[str] | None = None) -> pd.Dat
         print(f"  [drop_duplicates] Removed {dropped} duplicate row(s).")
 
     return df.reset_index(drop=True)
+
+
+REQUIRED_COLUMNS = ["date", "product", "quantity", "unit_price", "total", "region"]
+TEXT_COLUMNS = ["product", "region"]
+NUMERIC_COLUMNS = ["quantity", "unit_price", "total"]
+POSITIVE_COLUMNS = ["quantity", "unit_price", "total"]
+
+
+def clean(df: pd.DataFrame) -> pd.DataFrame:
+    """Run the full cleaning pipeline on a consolidated sales DataFrame.
+
+    Steps applied in order:
+    1. Drop rows with nulls in required columns
+    2. Drop duplicate rows
+    3. Normalize text columns (strip + title case)
+    4. Parse the date column to datetime
+    5. Coerce numeric columns to float
+    6. Remove rows with zero or negative numeric values
+    """
+    print("Starting data cleaning pipeline...")
+
+    df = drop_empty_rows(df, required_columns=REQUIRED_COLUMNS)
+    df = drop_duplicates(df)
+    df = normalize_text_columns(df, columns=TEXT_COLUMNS)
+    df = parse_dates(df, date_column="date")
+    df = cast_numeric_columns(df, columns=NUMERIC_COLUMNS)
+    df = remove_invalid_values(df, positive_columns=POSITIVE_COLUMNS)
+
+    print(f"Cleaning complete. {len(df)} row(s) remaining.\n")
+    return df
