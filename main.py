@@ -1,4 +1,4 @@
-"""Entry point: load, clean, merge, and analyze consolidated sales data."""
+"""Entry point: load, clean, merge, analyze, and generate the final sales report."""
 
 from pathlib import Path
 
@@ -6,6 +6,7 @@ from src.analyzer.metrics import analyze
 from src.cleaner.data_cleaner import clean
 from src.loader.excel_loader import load_all_excel_files
 from src.merger.data_merger import merge
+from src.reporter.report_generator import generate_report
 
 RAW_DATA_DIR = Path(__file__).parent / "data" / "raw"
 
@@ -34,6 +35,10 @@ def main():
 
     print("\nTop products:")
     print(result.top_products.to_string(index=False))
+
+    print()
+    report_path = generate_report(result, merged)
+    print(f"\nReport ready: {report_path.resolve()}")
 
 
 if __name__ == "__main__":
