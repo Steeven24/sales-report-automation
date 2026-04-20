@@ -87,3 +87,61 @@ def create_summary_sheet(ws, result: AnalysisResult, df: pd.DataFrame) -> None:
             val.fill = HEADER_FILL
         label.alignment = Alignment(horizontal="left")
         val.alignment = Alignment(horizontal="right")
+
+
+OUTPUT_REPORT = Path("data/output/sales_report.xlsx")
+
+# Maps sheet title → DataFrame from AnalysisResult
+_DATA_SHEETS = [
+    ("By Product", lambda r: r.by_product),
+    ("By Region", lambda r: r.by_region),
+    ("By Month", lambda r: r.monthly_summary),
+    ("Top Products", lambda r: r.top_products),
+]
+
+
+def generate_report(
+    result: AnalysisResult,
+    df: pd.DataFrame,
+    output_path: str | Path = OUTPUT_REPORT,
+) -> Path:
+    """Generate the final Excel report with one sheet per metric plus raw data.
+
+    Sheets created:
+    - Summary    : KPI block (total revenue, orders, units, avg ticket, best product/region)
+    - By Product : revenue and units sold per product
+    - By Region  : revenue and orders per region
+    - By Month   : monthly breakdown
+    - Top Products: top 3 products by revenue
+    - Raw Data   : full consolidated DataFrame
+    """
+    path = Path(output_path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+
+    wb = Workbook()
+    wb.remove(wb.active)  # remove default empty sheet
+
+    # Summary sheet
+    ws_summary = wb.create_sheet("Summary")
+    create_summary_sheet(ws_summary, result, df)
+
+    # Data sheets
+    for sheet_name, get_data in _DATA_SHEETS:
+        ws = wb.create_sheet(sheet_name)
+        data = get_data(result)
+        write_dataframe_to_sheet(ws, data, start_row=1)
+        apply_header_style(ws, header_row=1, col_count=len(data.columns))
+        auto_fit_columns(ws)
+
+    # Raw data sheet
+    ws_raw = wb.create_sheet("Raw Data")
+    raw_display = df.copy()
+    raw_display["date"] = raw_display["date"].dt.strftime("%Y-%m-%d")
+    write_dataframe_to_sheet(ws_raw, raw_display, start_row=1)
+    apply_header_style(ws_raw, header_row=1, col_count=len(raw_display.columns))
+    auto_fit_columns(ws_raw)
+
+    wb.save(path)
+    print(f"  [generate_report] Report saved to {path}")
+
+    return path
