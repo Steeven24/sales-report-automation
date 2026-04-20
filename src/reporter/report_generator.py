@@ -28,3 +28,14 @@ def write_dataframe_to_sheet(ws, df: pd.DataFrame, start_row: int = 1) -> None:
             if hasattr(value, "item"):
                 value = value.item()
             ws.cell(row=row_idx, column=col_idx, value=value)
+
+
+def auto_fit_columns(ws, min_width: int = 12, max_width: int = 40) -> None:
+    """Adjust each column width to fit its longest value."""
+    for col_cells in ws.columns:
+        max_len = max(
+            (len(str(cell.value)) for cell in col_cells if cell.value is not None),
+            default=min_width,
+        )
+        col_letter = get_column_letter(col_cells[0].column)
+        ws.column_dimensions[col_letter].width = min(max(max_len + 2, min_width), max_width)
