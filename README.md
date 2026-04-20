@@ -34,23 +34,26 @@ pip install -r requirements.txt
 ```
 sales-report-automation/
 ├── data/
-│   ├── raw/                      # Excel files to process (.xlsx / .xls)
-│   └── output/                   # Consolidated output files (generated)
+│   ├── raw/                        # Excel files to process (.xlsx / .xls)
+│   └── output/                     # Generated output files
 │       ├── consolidated_sales.xlsx
-│       └── consolidated_sales.csv
+│       ├── consolidated_sales.csv
+│       └── sales_report.xlsx       # Final formatted report
 ├── scripts/
-│   └── generate_sample_data.py   # Generates sample files for testing
+│   └── generate_sample_data.py     # Generates sample files for testing
 ├── src/
 │   ├── loader/
-│   │   └── excel_loader.py       # Excel loading and consolidation logic
+│   │   └── excel_loader.py         # Excel loading and consolidation logic
 │   ├── cleaner/
-│   │   └── data_cleaner.py       # Data cleaning pipeline
+│   │   └── data_cleaner.py         # Data cleaning pipeline
 │   ├── merger/
-│   │   └── data_merger.py        # Sorting, enrichment, and export pipeline
-│   └── analyzer/
-│       └── metrics.py            # Sales metrics and analysis
+│   │   └── data_merger.py          # Sorting, enrichment, and export pipeline
+│   ├── analyzer/
+│   │   └── metrics.py              # Sales metrics and analysis
+│   └── reporter/
+│       └── report_generator.py     # Final Excel report generation
 ├── tests/
-├── main.py                       # Entry point
+├── main.py                         # Entry point
 └── requirements.txt
 ```
 
@@ -69,8 +72,9 @@ Place your `.xlsx` or `.xls` files inside `data/raw/` and run the command above.
 1. Loads all Excel files from `data/raw/`
 2. Cleans the data (removes nulls, duplicates, invalid values, normalizes text)
 3. Sorts rows chronologically and adds period columns (year, month, quarter)
-4. Exports the consolidated result to `data/output/` as `.xlsx` and `.csv`
-5. Computes sales metrics and prints a full analysis report
+4. Exports the consolidated data to `data/output/` as `.xlsx` and `.csv`
+5. Computes sales metrics and prints a full analysis summary
+6. Generates the final formatted Excel report at `data/output/sales_report.xlsx`
 
 ### Generate sample data (for testing)
 
@@ -89,10 +93,25 @@ The files include intentionally dirty records (nulls, duplicates, bad dates, inv
 data/raw/*.xlsx
     → load_all_excel_files      (loader)
     → clean                     (cleaner)
-    → merge                     (merger)  →  data/output/consolidated_sales.xlsx / .csv
+    → merge                     (merger)   →  data/output/consolidated_sales.xlsx / .csv
     → analyze                   (analyzer)
-    → AnalysisResult
+    → generate_report           (reporter) →  data/output/sales_report.xlsx
 ```
+
+---
+
+## Report sheets
+
+The final `sales_report.xlsx` contains six sheets:
+
+| Sheet | Description |
+|---|---|
+| `Summary` | KPI block: total revenue, orders, units sold, avg order value, best product and region |
+| `By Product` | Revenue and units sold per product, sorted by revenue |
+| `By Region` | Revenue and order count per region, sorted by revenue |
+| `By Month` | Monthly breakdown: revenue, orders, units sold, avg order value |
+| `Top Products` | Top 3 products by revenue |
+| `Raw Data` | Full consolidated DataFrame with all columns |
 
 ---
 
@@ -103,8 +122,6 @@ data/raw/*.xlsx
 | `find_excel_files(directory)` | Returns a sorted list of `.xlsx`/`.xls` files found in a directory |
 | `load_excel_file(file_path, sheet_name)` | Loads a single Excel file into a `DataFrame`, adding a `source_file` column |
 | `load_all_excel_files(directory, sheet_name)` | Combines all Excel files in a directory into one consolidated `DataFrame` |
-
-The `source_file` column is added automatically so each row stays traceable to its origin file after consolidation.
 
 ---
 
@@ -120,19 +137,6 @@ The `source_file` column is added automatically so each row stays traceable to i
 | `remove_invalid_values(df, positive_columns)` | Drops rows with zero or negative values in numeric columns |
 | `clean(df)` | Runs the full cleaning pipeline in order |
 
-### Cleaning pipeline order
-
-```
-raw DataFrame
-    → drop_empty_rows
-    → drop_duplicates
-    → normalize_text_columns
-    → parse_dates
-    → cast_numeric_columns
-    → remove_invalid_values
-    → clean DataFrame
-```
-
 ---
 
 ## Module reference — `src/merger/data_merger.py`
@@ -144,17 +148,6 @@ raw DataFrame
 | `export_to_excel(df, output_path, sheet_name)` | Exports the DataFrame to a single `.xlsx` file |
 | `export_to_csv(df, output_path)` | Exports the DataFrame to a single `.csv` file |
 | `merge(df)` | Runs the full merging pipeline in order |
-
-### Merging pipeline order
-
-```
-clean DataFrame
-    → sort_by_date
-    → add_period_columns
-    → export_to_excel   →  data/output/consolidated_sales.xlsx
-    → export_to_csv     →  data/output/consolidated_sales.csv
-    → merged DataFrame
-```
 
 ---
 
@@ -183,9 +176,21 @@ clean DataFrame
 
 ---
 
+## Module reference — `src/reporter/report_generator.py`
+
+| Function | Description |
+|---|---|
+| `write_dataframe_to_sheet(ws, df, start_row)` | Writes a DataFrame into a worksheet with headers |
+| `auto_fit_columns(ws)` | Adjusts column widths to fit their content |
+| `apply_header_style(ws, header_row, col_count)` | Applies bold white text on dark background to header row |
+| `create_summary_sheet(ws, result, df)` | Writes the KPI summary block with title and metrics |
+| `generate_report(result, df, output_path)` | Creates the final multi-sheet Excel report |
+
+---
+
 ## Expected input format
 
-Each Excel file should contain tabular sales data. The sample files include these columns:
+Each Excel file should contain tabular sales data with these columns:
 
 | Column | Type | Description |
 |---|---|---|
@@ -197,8 +202,6 @@ Each Excel file should contain tabular sales data. The sample files include thes
 | `region` | string | Sales region |
 
 ### Output columns (after merging)
-
-The consolidated output includes all input columns plus the period columns added during merging:
 
 | Column | Type | Description |
 |---|---|---|
