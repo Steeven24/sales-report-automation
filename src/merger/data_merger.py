@@ -38,7 +38,9 @@ def export_to_excel(df: pd.DataFrame, output_path: str | Path, sheet_name: str =
     path = Path(output_path)
     path.parent.mkdir(parents=True, exist_ok=True)
 
-    df.to_excel(path, index=False, sheet_name=sheet_name, engine="openpyxl")
+    with pd.ExcelWriter(path, engine="openpyxl", datetime_format="YYYY-MM-DD") as writer:
+        df.to_excel(writer, index=False, sheet_name=sheet_name)
+
     print(f"  [export_to_excel] Saved {len(df)} row(s) to {path}")
 
     return path
