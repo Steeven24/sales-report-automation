@@ -45,8 +45,10 @@ sales-report-automation/
 │   │   └── excel_loader.py       # Excel loading and consolidation logic
 │   ├── cleaner/
 │   │   └── data_cleaner.py       # Data cleaning pipeline
-│   └── merger/
-│       └── data_merger.py        # Sorting, enrichment, and export pipeline
+│   ├── merger/
+│   │   └── data_merger.py        # Sorting, enrichment, and export pipeline
+│   └── analyzer/
+│       └── metrics.py            # Sales metrics and analysis
 ├── tests/
 ├── main.py                       # Entry point
 └── requirements.txt
@@ -68,6 +70,7 @@ Place your `.xlsx` or `.xls` files inside `data/raw/` and run the command above.
 2. Cleans the data (removes nulls, duplicates, invalid values, normalizes text)
 3. Sorts rows chronologically and adds period columns (year, month, quarter)
 4. Exports the consolidated result to `data/output/` as `.xlsx` and `.csv`
+5. Computes sales metrics and prints a full analysis report
 
 ### Generate sample data (for testing)
 
@@ -86,9 +89,9 @@ The files include intentionally dirty records (nulls, duplicates, bad dates, inv
 data/raw/*.xlsx
     → load_all_excel_files      (loader)
     → clean                     (cleaner)
-    → merge                     (merger)
-    → data/output/consolidated_sales.xlsx
-    → data/output/consolidated_sales.csv
+    → merge                     (merger)  →  data/output/consolidated_sales.xlsx / .csv
+    → analyze                   (analyzer)
+    → AnalysisResult
 ```
 
 ---
@@ -152,6 +155,31 @@ clean DataFrame
     → export_to_csv     →  data/output/consolidated_sales.csv
     → merged DataFrame
 ```
+
+---
+
+## Module reference — `src/analyzer/metrics.py`
+
+| Function | Description |
+|---|---|
+| `total_revenue(df)` | Returns the sum of all values in the `total` column |
+| `revenue_by_product(df)` | Revenue and units sold grouped by product, sorted descending |
+| `revenue_by_region(df)` | Revenue and order count grouped by region, sorted descending |
+| `revenue_by_period(df)` | Revenue and orders grouped by year and month, sorted chronologically |
+| `top_products(df, n)` | Returns the top N products by revenue (default: 3) |
+| `monthly_summary(df)` | Per-month summary: revenue, orders, units sold, and avg order value |
+| `analyze(df)` | Runs all metrics and returns an `AnalysisResult` dataclass |
+
+### AnalysisResult fields
+
+| Field | Type | Description |
+|---|---|---|
+| `total_revenue` | `float` | Overall revenue across all files |
+| `by_product` | `DataFrame` | Revenue and units sold per product |
+| `by_region` | `DataFrame` | Revenue and orders per region |
+| `by_period` | `DataFrame` | Revenue and orders per month |
+| `top_products` | `DataFrame` | Top 3 products by revenue |
+| `monthly_summary` | `DataFrame` | Full monthly breakdown |
 
 ---
 
