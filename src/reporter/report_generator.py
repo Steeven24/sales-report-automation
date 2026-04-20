@@ -11,7 +11,6 @@ from src.analyzer.metrics import AnalysisResult
 HEADER_FILL = PatternFill(start_color="2E4057", end_color="2E4057", fill_type="solid")
 HEADER_FONT = Font(color="FFFFFF", bold=True)
 ACCENT_FILL = PatternFill(start_color="048A81", end_color="048A81", fill_type="solid")
-ACCENT_FONT = Font(color="FFFFFF", bold=True, size=11)
 
 
 def write_dataframe_to_sheet(ws, df: pd.DataFrame, start_row: int = 1) -> None:
