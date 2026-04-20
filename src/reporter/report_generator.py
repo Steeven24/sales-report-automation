@@ -39,3 +39,12 @@ def auto_fit_columns(ws, min_width: int = 12, max_width: int = 40) -> None:
         )
         col_letter = get_column_letter(col_cells[0].column)
         ws.column_dimensions[col_letter].width = min(max(max_len + 2, min_width), max_width)
+
+
+def apply_header_style(ws, header_row: int, col_count: int) -> None:
+    """Apply bold white text on a dark background to the header row."""
+    for col_idx in range(1, col_count + 1):
+        cell = ws.cell(row=header_row, column=col_idx)
+        cell.font = HEADER_FONT
+        cell.fill = HEADER_FILL
+        cell.alignment = Alignment(horizontal="center")
